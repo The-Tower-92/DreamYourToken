@@ -21,7 +21,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const framePaths = [
     'frames/frame1.png',
     'frames/frame2.png',
-    'frames/frame3.png'
+    'frames/frame3.png',
+    'frames/frame4.png',
+    'frames/frame5.png',
+    'frames/frame6.png'
   ];
   let currentFrameIndex = 0;
 
