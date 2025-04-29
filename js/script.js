@@ -1,10 +1,28 @@
-// script.js aggiornato, corretto e pronto per GitHub Pages
+// script.js aggiornato, corretto e pronto per GitHub Pages con UI di caricamento migliorata (spinner)
 
 window.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
 
   const canvas = $('stage');
   const ctx = canvas.getContext('2d');
+
+  const loadingIndicator = document.createElement('div');
+  loadingIndicator.id = 'loadingIndicator';
+  loadingIndicator.innerHTML = '<div class="spinner"></div><p>Caricamento cornice...</p>';
+  loadingIndicator.style.position = 'absolute';
+  loadingIndicator.style.top = '50%';
+  loadingIndicator.style.left = '50%';
+  loadingIndicator.style.transform = 'translate(-50%, -50%)';
+  loadingIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+  loadingIndicator.style.color = 'white';
+  loadingIndicator.style.padding = '20px 30px';
+  loadingIndicator.style.borderRadius = '12px';
+  loadingIndicator.style.display = 'none';
+  loadingIndicator.style.textAlign = 'center';
+  loadingIndicator.style.zIndex = '10';
+  
+  document.body.appendChild(loadingIndicator);
+
   let charImg = null;
   let frameImg = null;
 
@@ -37,12 +55,18 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadFrame(index) {
+    showLoading(true);
     const img = new Image();
     img.onload = () => {
       frameImg = img;
+      showLoading(false);
       drawStage();
     };
     img.src = framePaths[index];
+  }
+
+  function showLoading(visible) {
+    loadingIndicator.style.display = visible ? 'block' : 'none';
   }
 
   $('charUpload')?.addEventListener('change', e => {
@@ -60,7 +84,6 @@ window.addEventListener('DOMContentLoaded', () => {
   Object.keys(sliders).forEach(id => {
     const range = $(id);
     const number = $(id + 'Val');
-
     if (!range || !number) return;
 
     range.addEventListener('input', () => {
@@ -125,8 +148,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!charImg) return;
     e.preventDefault();
     const z = e.deltaY < 0 ? 1.05 : 0.95,
-      mx = e.offsetX,
-      my = e.offsetY;
+          mx = e.offsetX,
+          my = e.offsetY;
     offsetX = mx - (mx - offsetX) * z;
     offsetY = my - (my - offsetY) * z;
     scale *= z;
@@ -135,13 +158,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function drawStage() {
     const b = $('brightness')?.value || 100,
-      c = $('contrast')?.value || 100,
-      s = $('saturate')?.value || 100,
-      g = $('gamma')?.value / 100 || 1,
-      w = $('white')?.value || 255,
-      k = $('black')?.value || 0,
-      amp = (w - k) / 255,
-      ofs = k / 255;
+          c = $('contrast')?.value || 100,
+          s = $('saturate')?.value || 100,
+          g = $('gamma')?.value / 100 || 1,
+          w = $('white')?.value || 255,
+          k = $('black')?.value || 0,
+          amp = (w - k) / 255,
+          ofs = k / 255;
 
     canvas.style.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%) url(#tonefilter)`;
 
