@@ -1,0 +1,16 @@
+# Ignora file temporanei
+*.tmp
+*.temp
+*.bak
+*.swp
+.DS_Store
+
+# Ignora cartelle di sistema
+node_modules/
+dist/
+build/
+
+# Ignora cartelle di backup di editor
+.vscode/
+.idea/
+.env
