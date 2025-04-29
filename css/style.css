@@ -6,46 +6,90 @@ body {
     margin: 20px;
 }
 
-.controls {
-    margin: 10px 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+/* wrapper ora a larghezza 100 % */
+#simple-img-editor{
+  width:100%;
+  max-width:100%;
+  margin:0 auto;
+  padding:0 16px;          /* margine interno per non toccare i bordi */
+  box-sizing:border-box;
 }
 
-.slicer {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+/* immagine adattiva */
+#preview{
+  width:100%;              /* riempi la larghezza disponibile */
+  height:auto;             /* mantieni proporzioni */
+  max-height:calc(50vh - 320px); /* non oltre la finestra */
+  object-fit:contain;/* mostralo intero se supera il box */
+  display:block;
+  margin-top:12px;
+  filter:brightness(1) contrast(1) saturate(1) url(#tonefilter);
+  transition:filter .3s; 
 }
 
-.frame-container {
-    position: relative;
-    margin: 20px;
+/* area slider */
+.controls { margin: 12px 0; }
+
+/* ogni riga slider */
+.controls label{
+  display: flex;              /* NEW: rende label un flex-container  */
+  align-items: center;
+  gap: 12px;                  /* spazio uniforme fra colonne          */
+  margin-top: 8px;
 }
 
-.frame {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+/* larghezza fissa alla colonna NOME per allineare i cursori */
+.controls .name{
+  min-width: 120px;           /* regola in base alle tue etichette    */
+  font-weight: 600;
 }
 
-#uploaded-image {
-    max-width: 600px;
-    max-height: 400px;
+/* slider prende tutto lo spazio rimanente */
+.controls input[type="range"]{
+  flex: 1;                    /* si allarga fino al bordo destro      */
 }
 
-.frame-controls {
-    display: flex;
-    gap: 10px;
-    margin: 10px;
+/* valore numerico allineato a destra, ampiezza fissa */
+.controls .value-input{
+  width: 48px;                /* uniforme per tutti                   */
+  text-align: right;
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
-.actions {
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
+#resetBtn{
+  margin-top:12px;
+  padding:6px 12px;
+  font-weight:600;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+#resetBtn:hover{opacity:.88;}
+
+#downloadBtn{
+  margin-left:8px;
+  padding:6px 12px;
+  font-weight:600;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+#downloadBtn:hover{opacity:.88;}
+
+.proof{
+  margin-left:12px;
+  font-weight:600;
+}
+#iccSelect{ margin-left:8px; }
+
+.duploader label{
+  display:inline-block; margin-right:12px; font-weight:600;
+}
+
+#stage{
+  width:100%;            /* riempie la larghezza */
+  display:block;
+  background:#eee;
+  cursor:grab;
 }
