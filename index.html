@@ -9,50 +9,97 @@
 <body>
 
     <h1>Editor Immagini con Cornice</h1>
-
-    <button id="upload-button">Carica Immagine</button>
-    <input type="file" id="file-input" accept="image/*" style="display:none">
-
+    <div id="simple-img-editor">
+    
+      <!-- 1️⃣  upload singolo (quello che già usi per i filtri) 
+      <input type="file" id="uploader" accept="image/*"> -->
+    
+      <!-- 2️⃣  NUOVO: doppio upload per sovrapposizione -->
+      <div class="duploader"><!-- NEW -->
+        <label>
+          Personaggio
+          <input type="file" id="charUpload"  accept="image/*">
+        </label>
+        <label>
+          Cornice
+          <input type="file" id="frameUpload" accept="image/*">
+        </label>
+      </div><!-- /duploader -->
+    
     <div class="controls">
-        <div class="slicer">
-            <label>Luminosit�: <input type="number" id="brightness-value" value="100" min="0" max="200">%</label>
-            <input type="range" id="brightness" min="0" max="200" value="100">
-        </div>
-        <div class="slicer">
-            <label>Contrasto: <input type="number" id="contrast-value" value="100" min="0" max="200">%</label>
-            <input type="range" id="contrast" min="0" max="200" value="100">
-        </div>
-        <div class="slicer">
-            <label>Saturazione: <input type="number" id="saturation-value" value="100" min="0" max="200">%</label>
-            <input type="range" id="saturation" min="0" max="200" value="100">
-        </div>
-        <div class="slicer">
-            <label>Gamma: <input type="number" id="gamma-value" value="1" step="0.1" min="0.1" max="3"></label>
-            <input type="range" id="gamma" min="0.1" max="3" step="0.1" value="1">
-        </div>
-        <div class="slicer">
-            <label>Livello Bianco: <input type="number" id="white-level-value" value="255" min="0" max="255"></label>
-            <input type="range" id="white-level" min="0" max="255" value="255">
-        </div>
-        <div class="slicer">
-            <label>Livello Nero: <input type="number" id="black-level-value" value="0" min="0" max="255"></label>
-            <input type="range" id="black-level" min="0" max="255" value="0">
-        </div>
-    </div>
-
-    <div class="frame-controls">
-        <button id="prev-frame">&#8592; Cambia Cornice</button>
-        <button id="next-frame">Cambia Cornice &#8594;</button>
-    </div>
-
-    <div class="frame-container">
-        <img id="uploaded-image" src="" alt="La tua immagine" style="display:none">
-        <img id="frame-overlay" class="frame" src="frames/frame1.png" alt="Cornice">
-    </div>
-
-    <div class="actions">
-        <button id="download-button">Download</button>
-        <button id="reset-button">Reset</button>
+        <!-- Brightness -->
+        <label>
+          <span class="name">Luminosità</span> 
+          <input type="range" id="brightness" min="50" max="200" value="100">
+          <input id="brightnessVal" class="value-input" type="number" min="50" max="200" value="100">
+        </label>
+    
+        <!-- Contrast -->
+        <label>
+          <span class="name">Contrasto</span> 
+          <input type="range" id="contrast" min="50" max="200" value="100">
+          <input id="contrastVal" class="value-input" type="number" min="50" max="200" value="100">
+        </label>
+    
+        <!-- Saturation -->
+        <label>
+          <span class="name">Saturazione</span> 
+          <input type="range" id="saturate" min="0" max="200" value="100">
+          <input id="saturateVal" class="value-input" type="number" min="0" max="200" value="100">
+        </label>
+    
+        <!-- Gamma -->
+        <label>
+          <span class="name">Gamma</span> 
+          <input type="range" id="gamma" min="10" max="300" value="100">
+          <input id="gammaVal" class="value-input" type="number" min="0.1" max="3" step="0.01" value="1.0">
+        </label>
+    
+        <!-- White level -->
+        <label>
+          <span class="name">Livello Bianco</span> 
+          <input type="range" id="white" min="200" max="255" value="255">
+          <input id="whiteVal" class="value-input" type="number" min="200" max="255" value="255">
+        </label>
+    
+        <!-- Black level -->
+        <label>
+          <span class="name">Livello Nero</span> 
+          <input type="range" id="black" min="0" max="55" value="0">
+          <input id="blackVal" class="value-input" type="number" min="0" max="55" value="0">
+        </label>
+      </div>
+    
+      <button id="resetBtn" type="button">Reset ↺</button>
+      <button id="downloadBtn" type="button">Download ⬇</button>
+    
+      <label class="proof">
+        <input type="checkbox" id="proofToggle"> Soft-proof CMYK
+      </label>
+      <select id="iccSelect">
+        <option value="fogra">FOGRA39 (ISO Coated v2)</option>
+        <option value="swop">US Web Coated SWOP v2</option>
+      </select>
+    
+      <!-- 3️⃣  NUOVO: canvas di composizione -->
+      <canvas id="stage"></canvas>
+    
+      <!-- Immagine di anteprima (puoi rimuoverla se non ti serve più) -->
+   <!--   <img id="preview"
+           src="https://cdn.dribbble.com/users/1138875/screenshots/4669703/404_animation.gif"
+           alt="Anteprima immagine"> 
+    
+      <!-- SVG filter usato da CSS -->
+      <svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+        <filter id="tonefilter">
+          <feComponentTransfer>
+            <feFuncR id="funcR" type="gamma" exponent="1" amplitude="1" offset="0"/>
+            <feFuncG id="funcG" type="gamma" exponent="1" amplitude="1" offset="0"/>
+            <feFuncB id="funcB" type="gamma" exponent="1" amplitude="1" offset="0"/>
+          </feComponentTransfer>
+        </filter>
+      </svg>
+    
     </div>
 
     <canvas id="canvas" style="display:none"></canvas>
