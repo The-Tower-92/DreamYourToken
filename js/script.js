@@ -1,10 +1,12 @@
+// script.js aggiornato, corretto e pronto per GitHub Pages
+
 window.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
 
   const canvas = $('stage');
   const ctx = canvas.getContext('2d');
   let charImg = null;
-  let frameImg = new Image();
+  let frameImg = null;
 
   let scale = 1, offsetX = 0, offsetY = 0;
   let dragging = false, dragStart = { x: 0, y: 0 }, startOffset = { x: 0, y: 0 };
@@ -35,7 +37,12 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadFrame(index) {
-    frameImg.src = framePaths[index];
+    const img = new Image();
+    img.onload = () => {
+      frameImg = img;
+      drawStage();
+    };
+    img.src = framePaths[index];
   }
 
   $('charUpload')?.addEventListener('change', e => {
@@ -90,13 +97,11 @@ window.addEventListener('DOMContentLoaded', () => {
   $('nextFrameBtn')?.addEventListener('click', () => {
     currentFrameIndex = (currentFrameIndex + 1) % framePaths.length;
     loadFrame(currentFrameIndex);
-    drawStage();
   });
 
   $('prevFrameBtn')?.addEventListener('click', () => {
     currentFrameIndex = (currentFrameIndex - 1 + framePaths.length) % framePaths.length;
     loadFrame(currentFrameIndex);
-    drawStage();
   });
 
   canvas.addEventListener('mousedown', e => {
@@ -105,7 +110,9 @@ window.addEventListener('DOMContentLoaded', () => {
     dragStart = { x: e.offsetX, y: e.offsetY };
     startOffset = { x: offsetX, y: offsetY };
   });
+
   window.addEventListener('mouseup', () => dragging = false);
+
   canvas.addEventListener('mousemove', e => {
     if (dragging) {
       offsetX = startOffset.x + (e.offsetX - dragStart.x);
@@ -113,6 +120,7 @@ window.addEventListener('DOMContentLoaded', () => {
       drawStage();
     }
   });
+
   canvas.addEventListener('wheel', e => {
     if (!charImg) return;
     e.preventDefault();
@@ -178,6 +186,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const ro = new ResizeObserver(entries => {
     for (const e of entries) if (e.target === canvas) setCanvasSize(e.contentRect.width);
   });
+
   ro.observe(canvas);
   window.addEventListener('resize', () => setCanvasSize(canvas.parentElement.clientWidth));
 
