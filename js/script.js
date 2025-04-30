@@ -1,260 +1,98 @@
-// script.js aggiornato per supporto responsivo anche su dispositivi mobili + touch gestures
+// script.js aggiornato per canvas responsive mobile tramite CSS e JS semplificato
 
 window.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
-
   const canvas = $('stage');
   const ctx = canvas.getContext('2d');
 
+  // Loading indicator
   const loadingIndicator = document.createElement('div');
   loadingIndicator.id = 'loadingIndicator';
   loadingIndicator.innerHTML = '<div class="spinner"></div><p>Caricamento cornice...</p>';
   document.body.appendChild(loadingIndicator);
 
+  // State
   let charImg = null;
   let frameImg = null;
-
   let scale = 1, offsetX = 0, offsetY = 0;
   let dragging = false, dragStart = { x: 0, y: 0 }, startOffset = { x: 0, y: 0 };
+  let lastTouchDistance = null, isTouchDragging = false;
 
-  let lastTouchDistance = null;
-  let isTouchDragging = false;
-
-  const sliders = {
-    brightness: 100,
-    contrast: 100,
-    saturate: 100,
-    gamma: 100,
-    white: 255,
-    black: 0
-  };
-
+  const sliders = { brightness:100, contrast:100, saturate:100, gamma:100, white:255, black:0 };
   const framePaths = [
-    'frames/frame1.png',
-    'frames/frame2.png',
-    'frames/frame3.png',
-    'frames/frame4.png',
-    'frames/frame5.png',
-    'frames/frame6.png'
+    'frames/frame1.png','frames/frame2.png','frames/frame3.png',
+    'frames/frame4.png','frames/frame5.png','frames/frame6.png'
   ];
   let currentFrameIndex = 0;
 
-  function loadImageFile(file, cb) {
-    const img = new Image();
-    img.onload = () => cb(img);
-    img.src = URL.createObjectURL(file);
+  // Helpers
+  function showLoading(show){ loadingIndicator.style.display = show ? 'flex' : 'none'; }
+  function getTouchDistance(t){ const dx=t[0].clientX-t[1].clientX, dy=t[0].clientY-t[1].clientY; return Math.hypot(dx,dy); }
+
+  function loadImageFile(f, cb){
+    const img = new Image(); img.onload = () => cb(img);
+    img.src = URL.createObjectURL(f);
   }
 
-  function loadFrame(index) {
+  function loadFrame(i){
     showLoading(true);
-    const img = new Image();
-    img.onload = () => {
-      frameImg = img;
-      showLoading(false);
-      drawStage();
-    };
-    img.src = framePaths[index];
+    const img=new Image();
+    img.onload = () => { frameImg=img; showLoading(false); drawStage(); };
+    img.src = framePaths[i];
   }
 
-  function showLoading(visible) {
-    loadingIndicator.style.display = visible ? 'flex' : 'none';
-  }
-
+  // Events
   $('charUpload')?.addEventListener('change', e => {
-    const f = e.target.files[0];
-    if (!f) return;
-    loadImageFile(f, img => {
-      charImg = img;
-      scale = 1;
-      offsetX = 0;
-      offsetY = 0;
-      drawStage();
-    });
+    const f=e.target.files[0]; if(!f) return;
+    loadImageFile(f, img=>{ charImg=img; scale=1; offsetX=0; offsetY=0; drawStage(); });
   });
 
-  Object.keys(sliders).forEach(id => {
-    const range = $(id);
-    const number = $(id + 'Val');
-    if (!range || !number) return;
-
-    range.addEventListener('input', () => {
-      number.value = id === 'gamma' ? (range.value / 100).toFixed(2) : range.value;
-      drawStage();
-    });
-
-    number.addEventListener('input', () => {
-      let v = number.value;
-      if (id === 'gamma') v = v * 100;
-      range.value = v;
-      drawStage();
-    });
+  Object.keys(sliders).forEach(id=>{
+    const r=$(id), n=$(id+'Val'); if(!r||!n) return;
+    r.addEventListener('input',()=>{ n.value = id==='gamma'? (r.value/100).toFixed(2) : r.value; drawStage(); });
+    n.addEventListener('input',()=>{ let v=n.value; if(id==='gamma') v= v*100; r.value=v; drawStage(); });
   });
 
-  $('resetBtn')?.addEventListener('click', () => {
-    for (const [k, v] of Object.entries(sliders)) {
-      $(k).value = v;
-      $(k + 'Val').value = k === 'gamma' ? (v / 100).toFixed(2) : v;
-    }
-    drawStage();
-  });
+  $('resetBtn')?.addEventListener('click',()=>{ for(const[k,v] of Object.entries(sliders)){ $(k).value=v; $(k+'Val').value = k==='gamma'? (v/100).toFixed(2):v;} drawStage(); });
+  $('downloadBtn')?.addEventListener('click',()=>{ canvas.toBlob(b=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='immagine-editata.png'; a.click(); URL.revokeObjectURL(a.href); },'image/png'); });
+  $('nextFrameBtn')?.addEventListener('click',()=>{ currentFrameIndex=(currentFrameIndex+1)%framePaths.length; loadFrame(currentFrameIndex); });
+  $('prevFrameBtn')?.addEventListener('click',()=>{ currentFrameIndex=(currentFrameIndex-1+framePaths.length)%framePaths.length; loadFrame(currentFrameIndex); });
 
-  $('downloadBtn')?.addEventListener('click', () => {
-    canvas.toBlob(blob => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'immagine-editata.png';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }, 'image/png');
-  });
+  // Drag & zoom (mouse)
+  canvas.addEventListener('mousedown',e=>{ if(!charImg) return; dragging=true; dragStart={x:e.offsetX,y:e.offsetY}; startOffset={x:offsetX,y:offsetY}; });
+  window.addEventListener('mouseup',()=>dragging=false);
+  canvas.addEventListener('mousemove',e=>{ if(dragging){ offsetX=startOffset.x+(e.offsetX-dragStart.x); offsetY=startOffset.y+(e.offsetY-dragStart.y); drawStage(); }});
+  canvas.addEventListener('wheel',e=>{ if(!charImg)return; e.preventDefault(); const z=e.deltaY<0?1.05:0.95, mx=e.offsetX, my=e.offsetY; offsetX=mx-(mx-offsetX)*z; offsetY=my-(my-offsetY)*z; scale*=z; drawStage(); },{passive:false});
 
-  $('nextFrameBtn')?.addEventListener('click', () => {
-    currentFrameIndex = (currentFrameIndex + 1) % framePaths.length;
-    loadFrame(currentFrameIndex);
-  });
+  // Touch support
+  canvas.addEventListener('touchstart',e=>{ if(!charImg)return; if(e.touches.length===1){ isTouchDragging=true; dragStart={x:e.touches[0].clientX,y:e.touches[0].clientY}; startOffset={x:offsetX,y:offsetY}; } else if(e.touches.length===2){ lastTouchDistance=getTouchDistance(e.touches);} },{passive:false});
+  canvas.addEventListener('touchmove',e=>{ if(!charImg)return; e.preventDefault(); if(e.touches.length===1&&isTouchDragging){ const dx=e.touches[0].clientX-dragStart.x, dy=e.touches[0].clientY-dragStart.y; offsetX=startOffset.x+dx; offsetY=startOffset.y+dy; drawStage(); } else if(e.touches.length===2){ const nd=getTouchDistance(e.touches); if(lastTouchDistance){ const z=nd/lastTouchDistance, mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2; offsetX=mx-(mx-offsetX)*z; offsetY=my-(my-offsetY)*z; scale*=z; drawStage(); } lastTouchDistance=nd; }} ,{passive:false});
+  canvas.addEventListener('touchend',()=>{ isTouchDragging=false; lastTouchDistance=null; });
 
-  $('prevFrameBtn')?.addEventListener('click', () => {
-    currentFrameIndex = (currentFrameIndex - 1 + framePaths.length) % framePaths.length;
-    loadFrame(currentFrameIndex);
-  });
+  // Draw
+  function drawStage(){
+    const b=$('brightness')?.value||100, c=$('contrast')?.value||100, s=$('saturate')?.value||100;
+    const g=($('gamma')?.value/100)||1, w=$('white')?.value||255, k=$('black')?.value||0;
+    const amp=(w-k)/255, ofs=k/255;
+    canvas.style.filter=`brightness(${b}%) contrast(${c}%) saturate(${s}%) url(#tonefilter)`;
+    [$('funcR'),$('funcG'),$('funcB')].forEach(f=>{ if(f){ f.setAttribute('exponent',g); f.setAttribute('amplitude',amp); f.setAttribute('offset',ofs);} });
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(charImg){ const rw=charImg.width*scale, rh=charImg.height*scale; ctx.drawImage(charImg,0,0,charImg.width,charImg.height, offsetX-rw/2+canvas.width/2, offsetY-rh/2+canvas.height/2, rw,rh);}   
+    if(frameImg?.complete){ ctx.drawImage(frameImg,0,0,frameImg.width,frameImg.height,0,0,canvas.width,canvas.height);}  }
 
-  // MOUSE DRAG
-  canvas.addEventListener('mousedown', e => {
-    if (!charImg) return;
-    dragging = true;
-    dragStart = { x: e.offsetX, y: e.offsetY };
-    startOffset = { x: offsetX, y: offsetY };
-  });
-
-  window.addEventListener('mouseup', () => dragging = false);
-
-  canvas.addEventListener('mousemove', e => {
-    if (dragging) {
-      offsetX = startOffset.x + (e.offsetX - dragStart.x);
-      offsetY = startOffset.y + (e.offsetY - dragStart.y);
-      drawStage();
-    }
-  });
-
-  canvas.addEventListener('wheel', e => {
-    if (!charImg) return;
-    e.preventDefault();
-    const z = e.deltaY < 0 ? 1.05 : 0.95,
-          mx = e.offsetX,
-          my = e.offsetY;
-    offsetX = mx - (mx - offsetX) * z;
-    offsetY = my - (my - offsetY) * z;
-    scale *= z;
-    drawStage();
-  }, { passive: false });
-
-  // TOUCH SUPPORT
-  canvas.addEventListener('touchstart', e => {
-    if (!charImg) return;
-    if (e.touches.length === 1) {
-      isTouchDragging = true;
-      dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      startOffset = { x: offsetX, y: offsetY };
-    } else if (e.touches.length === 2) {
-      lastTouchDistance = getTouchDistance(e.touches);
-    }
-  }, { passive: false });
-
-  canvas.addEventListener('touchmove', e => {
-    if (!charImg) return;
-    e.preventDefault();
-
-    if (e.touches.length === 1 && isTouchDragging) {
-      const dx = e.touches[0].clientX - dragStart.x;
-      const dy = e.touches[0].clientY - dragStart.y;
-      offsetX = startOffset.x + dx;
-      offsetY = startOffset.y + dy;
-      drawStage();
-    } else if (e.touches.length === 2) {
-      const newDist = getTouchDistance(e.touches);
-      if (lastTouchDistance) {
-        const z = newDist / lastTouchDistance;
-        const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-        const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-        offsetX = mx - (mx - offsetX) * z;
-        offsetY = my - (my - offsetY) * z;
-        scale *= z;
-        drawStage();
-      }
-      lastTouchDistance = newDist;
-    }
-  }, { passive: false });
-
-  canvas.addEventListener('touchend', () => {
-    isTouchDragging = false;
-    lastTouchDistance = null;
-  });
-
-  function getTouchDistance(touches) {
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.hypot(dx, dy);
-  }
-
-  function drawStage() {
-    const b = $('brightness')?.value || 100,
-          c = $('contrast')?.value || 100,
-          s = $('saturate')?.value || 100,
-          g = $('gamma')?.value / 100 || 1,
-          w = $('white')?.value || 255,
-          k = $('black')?.value || 0,
-          amp = (w - k) / 255,
-          ofs = k / 255;
-
-    canvas.style.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%) url(#tonefilter)`;
-
-    const funcR = $('funcR'), funcG = $('funcG'), funcB = $('funcB');
-    [funcR, funcG, funcB].forEach(f => {
-      if (f) {
-        f.setAttribute('exponent', g);
-        f.setAttribute('amplitude', amp);
-        f.setAttribute('offset', ofs);
-      }
-    });
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (charImg) {
-      const w = charImg.width * scale;
-      const h = charImg.height * scale;
-      ctx.drawImage(charImg, 0, 0, charImg.width, charImg.height,
-        offsetX - w / 2 + canvas.width / 2,
-        offsetY - h / 2 + canvas.height / 2,
-        w, h);
-    }
-
-    if (frameImg?.complete) {
-      ctx.drawImage(frameImg, 0, 0, frameImg.width, frameImg.height, 0, 0, canvas.width, canvas.height);
-    }
-  }
-
-  function setCanvasSize(viewW) {
-    const parent = canvas.parentElement;
-    const rect = parent.getBoundingClientRect();
-    const availW = rect.width;
-    const availH = window.innerHeight - rect.top - 24;
-    const cssSize = Math.min(availW, availH);
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = cssSize * ratio;
-    canvas.height = cssSize * ratio;
-    canvas.style.width = cssSize + 'px';
-    canvas.style.height = cssSize + 'px';
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  // Responsive sizing: use CSS width, JS height
+  function setCanvasSize(){
+    const cw=canvas.parentElement.clientWidth;
+    const ratio=window.devicePixelRatio||1;
+    canvas.style.width=`${cw}px`;
+    canvas.style.height=`${cw}px`;
+    canvas.width=cw*ratio;
+    canvas.height=cw*ratio;
+    ctx.setTransform(ratio,0,0,ratio,0,0);
     drawStage();
   }
 
-  const ro = new ResizeObserver(entries => {
-    for (const e of entries) if (e.target === canvas.parentElement) setCanvasSize(e.contentRect.width);
-  });
-
-  ro.observe(canvas.parentElement);
-  window.addEventListener('resize', () => setCanvasSize(canvas.parentElement.clientWidth));
-
-  setCanvasSize(canvas.parentElement.clientWidth);
+  window.addEventListener('resize', setCanvasSize);
+  setCanvasSize();
   loadFrame(currentFrameIndex);
 });
