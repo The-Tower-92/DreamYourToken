@@ -1,4 +1,4 @@
-// script.js aggiornato per supporto responsivo anche su dispositivi mobili
+// script.js aggiornato per supporto responsivo anche su dispositivi mobili + touch gestures
 
 window.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
@@ -16,6 +16,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   let scale = 1, offsetX = 0, offsetY = 0;
   let dragging = false, dragStart = { x: 0, y: 0 }, startOffset = { x: 0, y: 0 };
+
+  let lastTouchDistance = null;
+  let isTouchDragging = false;
 
   const sliders = {
     brightness: 100,
@@ -115,6 +118,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadFrame(currentFrameIndex);
   });
 
+  // MOUSE DRAG
   canvas.addEventListener('mousedown', e => {
     if (!charImg) return;
     dragging = true;
@@ -143,6 +147,54 @@ window.addEventListener('DOMContentLoaded', () => {
     scale *= z;
     drawStage();
   }, { passive: false });
+
+  // TOUCH SUPPORT
+  canvas.addEventListener('touchstart', e => {
+    if (!charImg) return;
+    if (e.touches.length === 1) {
+      isTouchDragging = true;
+      dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      startOffset = { x: offsetX, y: offsetY };
+    } else if (e.touches.length === 2) {
+      lastTouchDistance = getTouchDistance(e.touches);
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', e => {
+    if (!charImg) return;
+    e.preventDefault();
+
+    if (e.touches.length === 1 && isTouchDragging) {
+      const dx = e.touches[0].clientX - dragStart.x;
+      const dy = e.touches[0].clientY - dragStart.y;
+      offsetX = startOffset.x + dx;
+      offsetY = startOffset.y + dy;
+      drawStage();
+    } else if (e.touches.length === 2) {
+      const newDist = getTouchDistance(e.touches);
+      if (lastTouchDistance) {
+        const z = newDist / lastTouchDistance;
+        const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        offsetX = mx - (mx - offsetX) * z;
+        offsetY = my - (my - offsetY) * z;
+        scale *= z;
+        drawStage();
+      }
+      lastTouchDistance = newDist;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => {
+    isTouchDragging = false;
+    lastTouchDistance = null;
+  });
+
+  function getTouchDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
+  }
 
   function drawStage() {
     const b = $('brightness')?.value || 100,
