@@ -1,4 +1,4 @@
-// script.js aggiornato, corretto e pronto per GitHub Pages con UI di caricamento migliorata (spinner)
+// script.js aggiornato per supporto responsivo anche su dispositivi mobili
 
 window.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
@@ -9,18 +9,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const loadingIndicator = document.createElement('div');
   loadingIndicator.id = 'loadingIndicator';
   loadingIndicator.innerHTML = '<div class="spinner"></div><p>Caricamento cornice...</p>';
-  loadingIndicator.style.position = 'absolute';
-  loadingIndicator.style.top = '50%';
-  loadingIndicator.style.left = '50%';
-  loadingIndicator.style.transform = 'translate(-50%, -50%)';
-  loadingIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-  loadingIndicator.style.color = 'white';
-  loadingIndicator.style.padding = '20px 30px';
-  loadingIndicator.style.borderRadius = '12px';
-  loadingIndicator.style.display = 'none';
-  loadingIndicator.style.textAlign = 'center';
-  loadingIndicator.style.zIndex = '10';
-  
   document.body.appendChild(loadingIndicator);
 
   let charImg = null;
@@ -66,7 +54,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function showLoading(visible) {
-    loadingIndicator.style.display = visible ? 'block' : 'none';
+    loadingIndicator.style.display = visible ? 'flex' : 'none';
   }
 
   $('charUpload')?.addEventListener('change', e => {
@@ -194,9 +182,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function setCanvasSize(viewW) {
-    const rect = canvas.getBoundingClientRect();
+    const parent = canvas.parentElement;
+    const rect = parent.getBoundingClientRect();
+    const availW = rect.width;
     const availH = window.innerHeight - rect.top - 24;
-    const cssSize = Math.min(viewW, availH);
+    const cssSize = Math.min(availW, availH);
     const ratio = window.devicePixelRatio || 1;
     canvas.width = cssSize * ratio;
     canvas.height = cssSize * ratio;
@@ -207,10 +197,10 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   const ro = new ResizeObserver(entries => {
-    for (const e of entries) if (e.target === canvas) setCanvasSize(e.contentRect.width);
+    for (const e of entries) if (e.target === canvas.parentElement) setCanvasSize(e.contentRect.width);
   });
 
-  ro.observe(canvas);
+  ro.observe(canvas.parentElement);
   window.addEventListener('resize', () => setCanvasSize(canvas.parentElement.clientWidth));
 
   setCanvasSize(canvas.parentElement.clientWidth);
