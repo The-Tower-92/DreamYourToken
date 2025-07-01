@@ -82,7 +82,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Responsive sizing: use CSS width, JS height
   function setCanvasSize(){
-    const cw=canvas.parentElement.clientWidth;
+    //const cw=canvas.parentElement.clientWidth;
+    const cw=canvas.parentElement.clientHeight;
     const ratio=window.devicePixelRatio||1;
     canvas.style.width=`${cw}px`;
     canvas.style.height=`${cw}px`;
