@@ -110,15 +110,14 @@ body {
 
 #textInput {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  width: calc(100% - 20px);
+  top: 80%;
+  left: 40%;
+  width: 20%;
   background: transparent;
   border: none;
-  color: white;
+  color: black;
   font-size: 24px;
-  text-shadow: 0 0 3px rgba(0,0,0,0.8);
-  outline: none;
+  outline: white;
   z-index: 1000;
 }
 
