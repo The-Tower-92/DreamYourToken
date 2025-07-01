@@ -89,8 +89,11 @@ body {
 
 #stage{
   width:100%;            /* riempie la larghezza */
-  height:100%;            /* Riempie l'altezza */
+  height: auto;            /* Riempie l'altezza */
   display:block;
+  touch-action: none; /* prevenzione scroll durante pinch/drag */
+  max-width: 100%;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
   background:#eee;
   cursor:grab;
 }
