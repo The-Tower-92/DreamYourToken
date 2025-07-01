@@ -88,7 +88,7 @@ body {
 }
 
 #stage{
-  width:100%;            /* riempie la larghezza */
+  width:50%;            /* riempie la larghezza */
   display:block;
   background:#eee;
   cursor:grab;
