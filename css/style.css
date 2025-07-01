@@ -103,11 +103,6 @@ body {
   width: 100%;
 }
 
-#stage {
-  width: 100%;
-  height: auto;
-}
-
 #textInput {
   position: absolute;
   top: 80%;
