@@ -98,6 +98,31 @@ body {
   cursor:grab;
 }
 
+.canvas-container {
+  position: relative; /* contesto per il text-layer */
+  width: 100%;
+  max-width: 600px; /* o qualsiasi max desideri */
+}
+
+.text-layer {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 1000;
+}
+
+.text-layer textarea {
+  width: 100%;
+  height: 80px;
+  resize: none;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
 #loadingIndicator {
   position: absolute;
   top: 50%;
