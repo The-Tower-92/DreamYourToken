@@ -103,6 +103,7 @@ body {
   width: 100%;
 }
 
+/* Casella di testo centrata sopra il canvas */
 #textInput {
   position: absolute;
   top: 50%;
@@ -110,13 +111,14 @@ body {
   transform: translate(-50%, -50%);
   width: 80%;
   background: transparent;
-  border: none;
+  border: 1px solid white;
+  box-sizing: border-box;
   color: black;
   font-size: 24px;
   text-align: center;
   outline: none;
   z-index: 1000;
-  padding: 0;
+  padding: 5px 10px;
 }
 
 #loadingIndicator {
