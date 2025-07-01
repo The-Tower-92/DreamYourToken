@@ -59,7 +59,13 @@
     <button id="resetBtn" type="button">Reset ↺</button>
     <button id="downloadBtn" type="button">Download ⬇</button>
 
-    <canvas id="stage"></canvas>
+    <div class="canvas-container">
+      <canvas id="stage"></canvas>
+      <!-- Text layer sopra il canvas -->
+      <div class="text-layer">
+        <textarea id="textInput" placeholder="Inserisci testo..."></textarea>
+      </div>
+    </div>
 <!--
     <img id="preview"
          src="https://cdn.dribbble.com/users/1138875/screenshots/4669703/404_animation.gif"
