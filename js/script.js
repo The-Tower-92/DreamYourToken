@@ -23,7 +23,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const sliders = { brightness:100, contrast:100, saturate:100, gamma:100, white:255, black:0 };
   const framePaths = [
     'frames/frame1.png','frames/frame2.png','frames/frame3.png',
-    'frames/frame4.png','frames/frame5.png','frames/frame6.png'
+    'frames/frame4.png','frames/frame5.png','frames/frame6.png',
+    'frames/frame7.png'
   ];
   let currentFrameIndex = 0;
 
