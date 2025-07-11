@@ -226,7 +226,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // Responsive canvas: make square based on parent width
-  function setCanvasSize(){
+ /* function setCanvasSize(){
     const cw = canvas.parentElement.clientWidth;
     const ratio = window.devicePixelRatio || 1;
     canvas.style.width = `${cw}px`;
@@ -235,7 +235,33 @@ window.addEventListener('DOMContentLoaded', () => {
     canvas.height = cw * ratio;
     ctx.setTransform(ratio,0,0,ratio,0,0);
     drawStage();
+  }*/
+
+  function setCanvasSize(){
+  // prendi .canvas-container come contenitore esplicito
+  const container = document.querySelector('.canvas-container');
+  if (!container) return;
+  // larghezza in pixel
+  const { width: cw } = container.getBoundingClientRect();
+  // fattore DPI
+  const ratio = window.devicePixelRatio || 1;
+  // dimensione interna del canvas (per il buffer di disegno)
+  canvas.width  = cw * ratio;
+  canvas.height = cw * ratio;
+  // dimensione CSS (visibile)
+  canvas.style.width  = `${cw}px`;
+  canvas.style.height = `${cw}px`;
+  // resetta e scala per DPI
+  if (ctx.resetTransform) {
+    ctx.resetTransform();
+  } else {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
+  ctx.scale(ratio, ratio);
+  // ridisegna
+  drawStage();
+}
+
 
   window.addEventListener('resize', setCanvasSize);
   setCanvasSize();
