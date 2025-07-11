@@ -201,6 +201,20 @@ window.addEventListener('DOMContentLoaded', () => {
       if (f) { f.setAttribute('exponent', g); f.setAttribute('amplitude', amp); f.setAttribute('offset', ofs); }
     });
     ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    // Prendi dimensioni *CSS* del canvas
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+  
+    // Pulisci in CSS-pixel
+    ctx.clearRect(0, 0, cw, ch);
+  
+    // (ri)applica il reset e la scala DPI se serve
+    if (ctx.resetTransform) ctx.resetTransform();
+    else ctx.setTransform(1,0,0,1,0,0);
+    const ratio = window.devicePixelRatio || 1;
+    ctx.scale(ratio, ratio);
+    
     // draw character
     if (charImg) {
       const rw = charImg.width * scale;
@@ -210,10 +224,21 @@ window.addEventListener('DOMContentLoaded', () => {
         offsetY - rh/2 + canvas.height/2,
         rw, rh);
     }
-    // draw frame
+    
+    // Disegna la cornice ridotta del 10%, in CSS-pixel
     if (frameImg && frameImg.complete) {
-      ctx.drawImage(frameImg, 0,0,frameImg.width,frameImg.height, 0,0, canvas.width, canvas.height);
+      const margin = 0.4;          // 10% di spazio ai bordi
+      const fw = cw * (1 - 2*margin);
+      const fh = ch * (1 - 2*margin);
+      const fx = cw * margin;
+      const fy = ch * margin;
+      ctx.drawImage(
+        frameImg,
+        0, 0, frameImg.naturalWidth, frameImg.naturalHeight,  // src full image
+        fx, fy, fw, fh                                         // dest in CSS-px
+      );
     }
+    
     // draw overlay text
     if (overlayText) {
       ctx.font = `${Math.floor(canvas.width/20)}px sans-serif`;
