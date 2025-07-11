@@ -227,14 +227,14 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Disegna la cornice ridotta del 10%, in CSS-pixel
     if (frameImg && frameImg.complete) {
-      const margin = 0.4;          // 10% di spazio ai bordi
+      const margin = 0;          // 0% di spazio ai bordi
       const fw = cw * (1 - 2*margin);
       const fh = ch * (1 - 2*margin);
       const fx = cw * margin;
       const fy = ch * margin;
       ctx.drawImage(
         frameImg,
-        0, 0, frameImg.naturalWidth, frameImg.naturalHeight,  // src full image
+        0, 0, frameImg.naturalWidth/2, frameImg.naturalHeight/2,  // src full image
         fx, fy, fw, fh                                         // dest in CSS-px
       );
     }
