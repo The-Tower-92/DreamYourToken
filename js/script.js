@@ -1,9 +1,9 @@
 // script.js riscritto per includere testo editabile nel canvas
-
 window.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
   const canvas = $('stage');
   const ctx = canvas.getContext('2d');
+  const container = document.querySelector('.canvas-container');
   const textInput = $('textInput');
 
   // Loading indicator
@@ -55,6 +55,72 @@ window.addEventListener('DOMContentLoaded', () => {
       drawStage();
     };
     img.src = framePaths[index];
+  }
+
+  // ─── 1) Imposta dimensione e DPI ─────────────────────────────────────────────
+  function setCanvasSize() {
+    if (!container) {
+      console.error('Manca .canvas-container!');
+      return;
+    }
+
+    // dimensione CSS-pixel
+    const { width: cssW, height: cssH } = container.getBoundingClientRect();
+    // fattore di scala per devicePixelRatio
+    const ratio = window.devicePixelRatio || 1;
+
+    // buffer interno (backing store)
+    canvas.width  = Math.round(cssW * ratio);
+    canvas.height = Math.round(cssH * ratio);
+
+    // CSS-size per il DOM
+    canvas.style.width  = `${Math.round(cssW)}px`;
+    canvas.style.height = `${Math.round(cssH)}px`;
+
+    // reset trasform e scala per DPI
+    ctx.resetTransform();
+    ctx.scale(ratio, ratio);
+  }
+
+  // ─── 2) Disegna tutto il “stage” a piena estensione ──────────────────────────
+  function drawStage() {
+    // 2.1 Pulizia in backing-store-pixel
+    ctx.resetTransform();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 2.2 Riapplica la scala DPI
+    const ratio = window.devicePixelRatio || 1;
+    ctx.scale(ratio, ratio);
+
+    // dimensioni visibili in CSS-pixel
+    const cw = canvas.width  / ratio;
+    const ch = canvas.height / ratio;
+
+    // 2.3 Disegna la base (se presente)
+    if (charImg && charImg.complete) {
+      ctx.drawImage(
+        charImg,
+        0, 0, charImg.naturalWidth, charImg.naturalHeight, // src full
+        0, 0, cw, ch                                      // dest full canvas
+      );
+    }
+
+    // 2.4 Disegna il frame (senza margini)
+    if (frameImg && frameImg.complete) {
+      ctx.drawImage(
+        frameImg,
+        0, 0, frameImg.naturalWidth, frameImg.naturalHeight,
+        0, 0, cw, ch
+      );
+    }
+
+    // 2.5 Disegna eventuale testo in basso
+    if (overlayText) {
+      ctx.font      = '24px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText(overlayText, cw / 2, ch - 20);
+    }
   }
 
   // Set up event listeners
@@ -184,85 +250,14 @@ window.addEventListener('DOMContentLoaded', () => {
     isTouchDragging = false;
     lastTouchDistance = null;
   });
-// riferimenti globali
-const canvas      = document.getElementById('stage');
-const ctx         = canvas.getContext('2d');
-const container   = document.querySelector('.canvas-container');
-const textInput   = document.getElementById('textInput');
-let baseImg, frameImg;  // valorizza questi Image() dove vuoi nel tuo flow
 
-// ─── 1) Imposta dimensione e DPI ─────────────────────────────────────────────
-function setCanvasSize() {
-  if (!container) {
-    console.error('Manca .canvas-container!');
-    return;
-  }
+  // ─── 3) Hook di resize e avvio ───────────────────────────────────────────────
+  window.addEventListener('resize', () => {
+    setCanvasSize();
+    drawStage();
+  });
 
-  // dimensione CSS-pixel
-  const { width: cssW, height: cssH } = container.getBoundingClientRect();
-  // fattore di scala per devicePixelRatio
-  const ratio = window.devicePixelRatio || 1;
-
-  // buffer interno (backing store)
-  canvas.width  = Math.round(cssW * ratio);
-  canvas.height = Math.round(cssH * ratio);
-
-  // CSS-size per il DOM
-  canvas.style.width  = `${Math.round(cssW)}px`;
-  canvas.style.height = `${Math.round(cssH)}px`;
-
-  // reset trasform e scala per DPI
-  ctx.resetTransform();
-  ctx.scale(ratio, ratio);
-}
-
-// ─── 2) Disegna tutto il “stage” a piena estensione ──────────────────────────
-function drawStage() {
-  // 2.1 Pulizia in backing-store-pixel
-  ctx.resetTransform();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // 2.2 Riapplica la scala DPI
-  const ratio = window.devicePixelRatio || 1;
-  ctx.scale(ratio, ratio);
-
-  // dimensioni visibili in CSS-pixel
-  const cw = canvas.width  / ratio;
-  const ch = canvas.height / ratio;
-
-  // 2.3 Disegna la base (se presente)
-  if (charImg && charImg.complete) {
-    ctx.drawImage(
-      charImg,
-      0, 0, charImg.naturalWidth, charImg.naturalHeight, // src full
-      0, 0, cw, ch                                      // dest full canvas
-    );
-  }
-
-  // 2.4 Disegna il frame (senza margini)
-  if (frameImg && frameImg.complete) {
-    ctx.drawImage(
-      frameImg,
-      0, 0, frameImg.naturalWidth, frameImg.naturalHeight,
-      0, 0, cw, ch
-    );
-  }
-
-  // 2.5 Disegna eventuale testo in basso
-  if (textInput && textInput.value) {
-    ctx.font      = '24px sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.fillText(textInput.value, cw / 2, ch - 20);
-  }
-}
-
-// ─── 3) Hook di resize e avvio ───────────────────────────────────────────────
-window.addEventListener('resize', () => {
+  // all’avvio della pagina
   setCanvasSize();
   drawStage();
 });
-
-// all’avvio della pagina
-setCanvasSize();
-drawStage();
